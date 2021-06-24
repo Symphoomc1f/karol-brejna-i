@@ -2,7 +2,6 @@ package org.lantern.thrift.support;
 
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerTransport;
 import org.slf4j.Logger;
@@ -32,7 +31,7 @@ public class ThriftServiceServerProxyBean implements InitializingBean, Disposabl
 
     private TProcessor processor;
 
-    private ServerThread serverThread;
+    private TThreadPoolServer server;
 
     public ThriftServiceServerProxyBean(String serviceName, TServerTransport tServerTransport,
             TProtocolFactory tProtocolFactory, TProcessor processor) {
@@ -53,41 +52,19 @@ public class ThriftServiceServerProxyBean implements InitializingBean, Disposabl
         if (null == processor) {
             throw new IllegalClassFormatException("processor is null");
         }
-        serverThread = new ServerThread(processor);
-        serverThread.start();
 
-    }
-
-    class ServerThread extends Thread {
-        private TServer server;
-
-        ServerThread(TProcessor processor) throws Exception {
-            TThreadPoolServer.Args args = new TThreadPoolServer.Args(tServerTransport);
-            args.processor(processor);
-            args.protocolFactory(tProtocolFactory);
-            server = new TThreadPoolServer(args);
-        }
-
-        @Override
-        public void run() {
-            try {
-                server.serve();
-                logger.debug("service {} server start....", serviceName);
-            } catch (Exception e) {
-                //
-            }
-        }
-
-        public void stopServer() {
-            server.stop();
-        }
+        TThreadPoolServer.Args args = new TThreadPoolServer.Args(tServerTransport);
+        args.processor(processor);
+        args.protocolFactory(tProtocolFactory);
+        server = new TThreadPoolServer(args);
+        server.serve();
     }
 
     @Override
     public void destroy() throws Exception {
-        serverThread.stopServer();
-        serverThread = null;
+        server.stop();
+        server = null;
 
-        logger.debug("ServerThread {} stop",serviceName);
+        logger.debug("ServerThread {} stop", serviceName);
     }
 }
