@@ -4,12 +4,7 @@ spring:
     username: root
     password: 123456
 
-logging:
-  level:
-    root: info
-    org.lantern: debug
-    org.springframework.boot: debug
-    org.apache.thrift: debug
+
 
 
 
@@ -18,6 +13,13 @@ customer:
     server:
       port: 8090
       ipAddress: 127.0.0.1
+
+
+
+
+
+
+
 
 
 

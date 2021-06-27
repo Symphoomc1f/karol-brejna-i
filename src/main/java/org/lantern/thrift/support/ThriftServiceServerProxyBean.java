@@ -1,5 +1,9 @@
 package org.lantern.thrift.support;
 
+import java.lang.instrument.IllegalClassFormatException;
+import java.util.Map;
+
+import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -8,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-
-import java.lang.instrument.IllegalClassFormatException;
 
 /**
  * thrift 接口代理类,组装server实现
@@ -23,22 +25,21 @@ public class ThriftServiceServerProxyBean implements InitializingBean, Disposabl
 
     Logger logger = LoggerFactory.getLogger(getClass());
 
-    private String serviceName;
-
     private TServerTransport tServerTransport;
 
     private TProtocolFactory tProtocolFactory;
 
-    private TProcessor processor;
+    private TMultiplexedProcessor processor = new TMultiplexedProcessor();
+
+    private Map<String, TProcessor> processorMap;
 
     private TThreadPoolServer server;
 
-    public ThriftServiceServerProxyBean(String serviceName, TServerTransport tServerTransport,
-            TProtocolFactory tProtocolFactory, TProcessor processor) {
-        this.serviceName = serviceName;
+    public ThriftServiceServerProxyBean(TServerTransport tServerTransport, TProtocolFactory tProtocolFactory,
+            Map<String, TProcessor> processorMap) {
         this.tServerTransport = tServerTransport;
         this.tProtocolFactory = tProtocolFactory;
-        this.processor = processor;
+        this.processorMap = processorMap;
     }
 
     @Override
@@ -49,15 +50,22 @@ public class ThriftServiceServerProxyBean implements InitializingBean, Disposabl
         if (null == tProtocolFactory) {
             throw new IllegalClassFormatException("tProtocolFactory is null");
         }
-        if (null == processor) {
-            throw new IllegalClassFormatException("processor is null");
+        if (null == processorMap || processorMap.isEmpty()) {
+            throw new IllegalClassFormatException("processorMap is null");
+        }
+
+        for (String processorName : processorMap.keySet()) {
+            processor.registerProcessor(processorName, processorMap.get(processorName));
+            logger.debug("Register a Processor {}", processorName);
         }
 
         TThreadPoolServer.Args args = new TThreadPoolServer.Args(tServerTransport);
         args.processor(processor);
         args.protocolFactory(tProtocolFactory);
         server = new TThreadPoolServer(args);
+        logger.debug("Thrift Server 正在启动............");
         server.serve();
+        logger.error("Thrift Server 停止............");
     }
 
     @Override
@@ -65,6 +73,6 @@ public class ThriftServiceServerProxyBean implements InitializingBean, Disposabl
         server.stop();
         server = null;
 
-        logger.debug("ServerThread {} stop", serviceName);
+        logger.warn("Thrift Server  stop");
     }
 }

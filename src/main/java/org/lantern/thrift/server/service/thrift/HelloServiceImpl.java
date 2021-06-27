@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  * @author Vigor Yuan
  */
 @Service
-@EnableThriftServer
+@EnableThriftServer(genClass = HelloService.class)
 public class HelloServiceImpl implements HelloService.Iface, ThriftServerService {
 
     @Override
