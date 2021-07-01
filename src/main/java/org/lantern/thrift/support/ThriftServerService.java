@@ -14,5 +14,5 @@ public interface ThriftServerService {
 
     String getName();
 
-    TProcessor getProcessor(Object bean);
+    TProcessor getProcessor(ThriftServerService bean);
 }

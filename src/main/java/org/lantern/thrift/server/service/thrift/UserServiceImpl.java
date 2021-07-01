@@ -28,9 +28,9 @@ public class UserServiceImpl implements UserService.Iface, ThriftServerService {
     }
 
     @Override
-    public TProcessor getProcessor(Object bean) {
-        UserServiceImpl impl = (UserServiceImpl) bean;
-        return new UserService.Processor<UserServiceImpl>(impl);
+    public TProcessor getProcessor(ThriftServerService bean) {
+        UserService.Iface impl = (UserService.Iface) bean;
+        return new UserService.Processor<UserService.Iface>(impl);
     }
 
     @Override

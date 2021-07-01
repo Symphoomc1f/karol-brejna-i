@@ -76,7 +76,7 @@ public class ThriftApplicationListener implements ApplicationListener<Applicatio
 
             ThriftServerService serverService = (ThriftServerService) bean;
 
-            processorMap.put(serverService.getName() + "Processor", serverService.getProcessor(bean));
+            processorMap.put(serverService.getName() + "Processor", serverService.getProcessor(serverService));
 
         }
 

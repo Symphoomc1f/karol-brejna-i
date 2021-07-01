@@ -25,9 +25,9 @@ public class HelloServiceImpl implements HelloService.Iface, ThriftServerService
     }
 
     @Override
-    public TProcessor getProcessor(Object bean) {
-        HelloServiceImpl impl = (HelloServiceImpl) bean;
-        return new HelloService.Processor<HelloServiceImpl>(impl);
+    public TProcessor getProcessor(ThriftServerService bean) {
+        HelloService.Iface impl = (HelloService.Iface) bean;
+        return new HelloService.Processor<HelloService.Iface>(impl);
     }
 
     @Override
